@@ -47,7 +47,7 @@
             <div class="card">
                   <div class="card-body">
                     <h4 class="card-title">Query List</h4>
-                    <table class="table stripe hover row-border order-column" id="example" style="overflow-x:auto;">
+                    <table class="table stripe hover row-border order-column" id="example">
                       <thead>
                         <tr>
                           <th>Query Id</th>
