@@ -37,15 +37,21 @@
         <!-- partial -->
         <div class="main-panel">
           <div class="content-wrapper">
-            <div class="page-header">
+            <div class="page-header"> 
               <h3 class="page-title">
                 <span class="page-title-icon bg-gradient-primary text-white me-2">
                   <i class="mdi mdi-home"></i>
-                </span>Resolved Room Queries</h3>
+                </span> Suggestion Box
+              </h3>
+              <h3 class="page-title">
+              <a href="./query_add.php" class="page-title-icon bg-gradient-primary text-white">
+                <i class="mdi mdi-plus"></i>
+              </a>
+              </h3>
             </div>
             <div class="card">
                   <div class="card-body">
-                    <h4 class="card-title">Resolved Query List</h4>
+                    <h4 class="card-title">Suggestion List </h4>
                     <table class="table stripe hover row-border order-column" id="example">
                       <thead>
                         <tr>
@@ -61,33 +67,31 @@
                       </thead>
                       <tbody>
                         <?php 
-                        $resolve = '';
+                        $resolve='';
                         $Istmt = '';
                         if($_SESSION['role'] == 0){
-                            $Istmt = "SELECT q.query_id,q.date,s.rollno,q.hostel,q.room_no,q.problem_category,q.problem_statement,q.resolved_by FROM room_query q left join students_info s ON q.reported_by=s.id WHERE q.room_no = ? AND q.hostel = ? AND q.resolved_by IS NOT NULL ORDER BY q.query_id DESC;";
+                            $Istmt = "SELECT q.query_id,q.date,s.rollno,q.hostel,q.room_no,q.problem_category,q.problem_statement,q.resolved_by FROM room_query q left join students_info s ON q.reported_by=s.id WHERE q.room_no = ? AND q.hostel = ? ORDER BY q.query_id DESC;";
                             $stmt = mysqli_prepare($db, $Istmt); mysqli_stmt_bind_param($stmt, "ds", $_SESSION['room_no'],$_SESSION['hostel']); mysqli_stmt_execute($stmt); $result = mysqli_stmt_get_result($stmt);
                           }
-                        if($_SESSION['role'] != 0 && $_SESSION['role2']==2){
-                            $Istmt = "SELECT q.query_id,q.date,s.rollno,q.hostel,q.room_no,q.problem_category,q.problem_statement,q.resolved_by FROM room_query q left join students_info s ON q.reported_by=s.id WHERE q.hostel = ? AND q.resolved_by IS NULL ORDER BY q.query_id DESC;";
-                            $stmt = mysqli_prepare($db, $Istmt); mysqli_stmt_bind_param($stmt, "s",$_SESSION['hostel']); mysqli_stmt_execute($stmt); $result = mysqli_stmt_get_result($stmt);
-                          }
+                        if ($_SESSION['role']!=0 && $_SESSION['role2']){
+                          $Istmt = "SELECT q.query_id,q.date,s.rollno,q.hostel,q.room_no,q.problem_category,q.problem_statement,q.resolved_by FROM room_query q left join students_info s ON q.reported_by=s.id WHERE q.hostel = ? ORDER BY q.query_id DESC;";
+                          $stmt = mysqli_prepare($db, $Istmt); mysqli_stmt_bind_param($stmt, "s",$_SESSION['hostel']); mysqli_stmt_execute($stmt); $result = mysqli_stmt_get_result($stmt);
+                        }
                         while ($row = mysqli_fetch_array($result)) {
                           if($_SESSION['role'] != 0 && $_SESSION['role2']==2)
                           $resolve = "<button onclick='resolve($row[query_id])' type='button' class='btn-m btn-gradient-success btn-fw' style = 'box-shadow:none; margin-left:5%'>Resolve</button>";
                           $status ='';
                           $catgory = ($row['problem_category'] == 1) ? 'Electrical' : ((($row['problem_category'] == 2) ? 'Woodworks' : 'Others'));
-                          if (isset($row['resolved_by'])){$status = "<td><label class='badge badge-success'>Resolved</label></td>"; }
-                          else {$status = "<td><label class='badge badge-warning'>Initiated</label></td>";}
+                          if (isset($row['resolved_by'])){$resolve=''; $status = "<td><label class='badge badge-success'>Resolved</label></td>"; }
+                          else { $status = "<td><label class='badge badge-warning'>Initiated</label></td>";}
                             echo "<tr>";
-                            echo " <td>RQ-$row[query_id]</td>
+                            echo "<td>RQ-$row[query_id]</td>
                             <td>$row[rollno]</td>
                             <td>$row[hostel]</td>
                             <td>$row[room_no]</td>
                             <td><label>$catgory</label></td>$status
                             <td>$row[date]</td>
-                            <td>
-                            <button onclick='view($row[query_id])' type='button' class='btn-m btn-gradient-primary btn-fw'>View</button>$resolve
-                            </td>
+                            <td><button onclick='view($row[query_id])' type='button' class='btn-m btn-gradient-primary btn-fw'>View</button>$resolve</td>
                           </tr>";
                         }
                         ?>
@@ -111,7 +115,6 @@
     </div>
     <!-- container-scroller -->
     <!-- plugins:js -->
- <!--   <script src="./../../assets/vendors/js/vendor.bundle.base.js"></script>  -->
     <!-- endinject -->
     <!-- Plugin js for this page -->
     <script src="./../../assets/vendors/chart.js/Chart.min.js"></script>
@@ -132,10 +135,10 @@
 <script>
     $(document).ready(function() {
     var table = $('#example').DataTable( {
+        "order": [[ 5, "asc" ]],
         lengthChange: false,
         buttons: [ 'copy', 'excel', 'pdf', 'colvis' ]
     } );
- 
     table.buttons().container()
         .appendTo( '#example_wrapper .col-md-6:eq(0)' );
 } );
@@ -146,7 +149,7 @@ function view(id_no){
         window.location.href = "./view.php?id=" + id;
     }
 
-function resolve(qid){
+    function resolve(qid){
             var id = qid;
             var form_data = new FormData();
             form_data.append('q_id',id);
@@ -162,7 +165,7 @@ function resolve(qid){
                         console.log(result);
                         console.log(result.success);
                         if (result.success === true) {
-                          window.location.reload();
+                          window.location.href='./query_list.php';
                         } else if (result.success === false) {
                              alert(result.message);
                         }

@@ -37,9 +37,9 @@
           <div class="content-wrapper">
             <div class="page-header">
               <h3 class="page-title">
-              <span onclick="back()" class="page-title-icon bg-gradient-primary text-white me-2">
-                  <i class="mdi mdi-arrow-left-bold"></i>
-                </span>
+              <a href="#" onclick="window.history.back();"class="page-title-icon bg-gradient-primary text-white">
+                <i class="mdi mdi-arrow-left-bold"></i>
+              </a>
                 <span class="page-title-icon bg-gradient-primary text-white me-2">
                   <i class="mdi mdi-home"></i>
                 </span> Room Query Details
@@ -47,11 +47,11 @@
             </div>
             <?php 
                 $id = $_GET['id'];
-                $Istmt = "SELECT q.query_id,q.date,s.rollno,s.name,q.hostel,q.room_no,q.problem_category,q.problem_statement,q.resolved_by,q.query_photo_link FROM room_query q left join students_info s ON q.reported_by=s.id WHERE q.query_id = ? ;";
+                $Istmt = "SELECT q.query_id,q.date,s.rollno,s.name,q.hostel,q.room_no,q.problem_category,q.problem_statement,q.resolved_by,q.query_photo_link,q.status FROM room_query q left join students_info s ON q.reported_by=s.id WHERE q.query_id = ? ;";
                 $stmt = mysqli_prepare($db, $Istmt); mysqli_stmt_bind_param($stmt, "d",$id); mysqli_stmt_execute($stmt); $result = mysqli_stmt_get_result($stmt);
                 $row = mysqli_fetch_array($result);
                 $category = ($row['problem_category'] == 1) ? 'Electrical' : ((($row['problem_category'] == 2) ? 'Woodworks' : 'Others'));
-                $status = (isset($row['resolved_by'])==0)? 'Initiated': 'Resolved';
+                $status = ($row['status'] == 0) ? 'Declined' : (($row['status'] == 1) ? 'Submitted' : (($row['status'] == 2) ? 'In Progress' : 'Completed'));
            ?>
             <div class="card">
                   <div class="card-body">
@@ -86,8 +86,9 @@
                       </div>
                     <br>
                     <?php if($_SESSION['role']==0){echo "<button onclick='DeleteQuery($row[query_id])' type='button' style='box-shadow:none;' class='btn btn-gradient-danger btn-fw'>Delete Query</button>";}
-                    else if(!(isset($row['resolved_by'])))
-                    echo "<button onclick='resolve($row[query_id])' type='button' style='box-shadow:none;' class='btn btn-gradient-success btn-fw'>Resolve Query</button>";
+                    else if(($row['status']==1))
+                    echo "<button onclick='approve($row[query_id])' type='button' style='box-shadow:none;' class='btn btn-gradient-success btn-fw'>Approve Query</button>
+                    <button onclick='decline($row[query_id])' type='button' style='box-shadow:none;' class='btn btn-gradient-danger btn-fw'>Decline Query</button>";
                     else
                     echo '';
                     ?>
@@ -155,12 +156,12 @@
                 }
             });
         }
-        function resolve(qid){
+        function approve(qid){
             var id = qid;
             var form_data = new FormData();
             form_data.append('q_id',id);
             $.ajax({
-                url : './../../api/roomquery/resolve.php',
+                url : './../../api/roomquery/approve.php',
                 method : 'POST',
                 dataType : 'json',
                 cache : false,
@@ -181,7 +182,30 @@
                 }
             });
         }
-        function back(){
-          window.history.back();
+        function decline(qid){
+            var id = qid;
+            var form_data = new FormData();
+            form_data.append('q_id',id);
+            $.ajax({
+                url : './../../api/roomquery/decline.php',
+                method : 'POST',
+                dataType : 'json',
+                cache : false,
+                contentType : false,
+                processData: false,
+                data : form_data,
+                success: function (result) {
+                        console.log(result);
+                        console.log(result.success);
+                        if (result.success === true) {
+                          window.history.back();
+                        } else if (result.success === false) {
+                             alert(result.message);
+                        }
+                },
+                 error: function (err) {
+                    console.log(err);
+                }
+            });
         }
 </script>

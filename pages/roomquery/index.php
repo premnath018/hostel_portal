@@ -37,17 +37,23 @@
         <!-- partial -->
         <div class="main-panel">
           <div class="content-wrapper">
-            <div class="page-header">
+            <div class="page-header"> 
               <h3 class="page-title">
                 <span class="page-title-icon bg-gradient-primary text-white me-2">
                   <i class="mdi mdi-home"></i>
                 </span> Room Query List
               </h3>
+              <h3 class="page-title">
+              <a href="./create.php" class="page-title-icon bg-gradient-primary text-white">
+                <i class="mdi mdi-plus"></i>
+              </a>
+              </h3>
             </div>
             <div class="card">
                   <div class="card-body">
                     <h4 class="card-title">Query List</h4>
-                    <table class="table stripe hover row-border order-column" id="example">
+                    <div class="tb-responsive">
+                    <table class="table stripe hover row-border order-column" id="example" >
                       <thead>
                         <tr>
                           <th>Query Id</th>
@@ -55,6 +61,7 @@
                           <th>Hostel</th>
                           <th>Room No</th>
                           <th>Category</th>
+                          <th>Problem Statement</th>
                           <th>Status</th>
                           <th>Date</th>
                           <th>Action</th>
@@ -65,26 +72,27 @@
                         $resolve='';
                         $Istmt = '';
                         if($_SESSION['role'] == 0){
-                            $Istmt = "SELECT q.query_id,q.date,s.rollno,q.hostel,q.room_no,q.problem_category,q.problem_statement,q.resolved_by FROM room_query q left join students_info s ON q.reported_by=s.id WHERE q.room_no = ? AND q.hostel = ? ORDER BY q.query_id DESC;";
+                            $Istmt = "SELECT q.query_id,q.date,s.rollno,q.hostel,q.room_no,q.problem_category,q.problem_statement,q.resolved_by,q.status FROM room_query q left join students_info s ON q.reported_by=s.id WHERE q.room_no = ? AND q.hostel = ? ORDER BY q.query_id DESC;";
                             $stmt = mysqli_prepare($db, $Istmt); mysqli_stmt_bind_param($stmt, "ds", $_SESSION['room_no'],$_SESSION['hostel']); mysqli_stmt_execute($stmt); $result = mysqli_stmt_get_result($stmt);
                           }
                         if ($_SESSION['role']!=0 && $_SESSION['role2']){
-                          $Istmt = "SELECT q.query_id,q.date,s.rollno,q.hostel,q.room_no,q.problem_category,q.problem_statement,q.resolved_by FROM room_query q left join students_info s ON q.reported_by=s.id WHERE q.hostel = ? ORDER BY q.query_id DESC;";
+                          $Istmt = "SELECT q.query_id,q.date,s.rollno,q.hostel,q.room_no,q.problem_category,q.problem_statement,q.resolved_by,q.status FROM room_query q left join students_info s ON q.reported_by=s.id WHERE q.hostel = ? ORDER BY q.query_id DESC;";
                           $stmt = mysqli_prepare($db, $Istmt); mysqli_stmt_bind_param($stmt, "s",$_SESSION['hostel']); mysqli_stmt_execute($stmt); $result = mysqli_stmt_get_result($stmt);
                         }
                         while ($row = mysqli_fetch_array($result)) {
-                          if($_SESSION['role'] != 0 && $_SESSION['role2']==2)
-                          $resolve = "<button onclick='resolve($row[query_id])' type='button' class='btn-m btn-gradient-success btn-fw' style = 'box-shadow:none; margin-left:5%'>Resolve</button>";
-                          $status ='';
-                          $catgory = ($row['problem_category'] == 1) ? 'Electrical' : ((($row['problem_category'] == 2) ? 'Woodworks' : 'Others'));
-                          if (isset($row['resolved_by'])){$resolve=''; $status = "<td><label class='badge badge-success'>Resolved</label></td>"; }
-                          else { $status = "<td><label class='badge badge-warning'>Initiated</label></td>";}
+                          if($_SESSION['role'] != 0 && $_SESSION['role2']==2){
+                          $resolve = ($row['status'] == 1) ? "<button onclick='approve($row[query_id])' type='button' class='btn-m btn-gradient-success btn-fw' style = 'box-shadow:none; margin-left:3%'>Approve</button>
+                          <button onclick='decline($row[query_id])' type='button' class='btn-m btn-gradient-danger btn-fw' style = 'box-shadow:none; margin-left:3%'>Decline</button>" : ""; }
+                          $status = ($row['status'] == 0) ? "danger'>Declinied" : (($row['status'] == 1) ? "success'>Submitted" : (($row['status'] == 2) ? "warning'>In Progress" : "info'>Completed"));
+                          $catgory = ($row['problem_category'] == 1) ? 'Electrical' : ((($row['problem_category'] == 2) ? 'Carpentary' : 'Others'));
                             echo "<tr>";
                             echo "<td>RQ-$row[query_id]</td>
                             <td>$row[rollno]</td>
                             <td>$row[hostel]</td>
                             <td>$row[room_no]</td>
-                            <td><label>$catgory</label></td>$status
+                            <td><label>$catgory</label></td>
+                            <td><label>$row[problem_statement]</label></td>
+                            <td><label class='badge badge-$status</label></td>
                             <td>$row[date]</td>
                             <td><button onclick='view($row[query_id])' type='button' class='btn-m btn-gradient-primary btn-fw'>View</button>$resolve</td>
                           </tr>";
@@ -92,6 +100,7 @@
                         ?>
                       </tbody>
                     </table>
+                    </div>
                   </div>
                 </div>
             </div>
@@ -130,9 +139,10 @@
 <script>
     $(document).ready(function() {
     var table = $('#example').DataTable( {
-        "order": [[ 5, "asc" ]],
+        "order": [[ 6, "desc" ]],
+        responsive: true,
         lengthChange: false,
-        buttons: [ 'copy', 'excel', 'pdf', 'colvis' ]
+        buttons: [ 'csv', 'excel', 'pdf', 'colvis' ]
     } );
     table.buttons().container()
         .appendTo( '#example_wrapper .col-md-6:eq(0)' );
@@ -144,12 +154,12 @@ function view(id_no){
         window.location.href = "./view.php?id=" + id;
     }
 
-    function resolve(qid){
+    function approve(qid){
             var id = qid;
             var form_data = new FormData();
             form_data.append('q_id',id);
             $.ajax({
-                url : './../../api/roomquery/resolve.php',
+                url : './../../api/roomquery/approve.php',
                 method : 'POST',
                 dataType : 'json',
                 cache : false,
@@ -160,7 +170,33 @@ function view(id_no){
                         console.log(result);
                         console.log(result.success);
                         if (result.success === true) {
-                          window.location.href='./query_list.php';
+                          location.reload();
+                        } else if (result.success === false) {
+                             alert(result.message);
+                        }
+                },
+                 error: function (err) {
+                    console.log(err);
+                }
+            });
+        }
+        function decline(qid){
+            var id = qid;
+            var form_data = new FormData();
+            form_data.append('q_id',id);
+            $.ajax({
+                url : './../../api/roomquery/decline.php',
+                method : 'POST',
+                dataType : 'json',
+                cache : false,
+                contentType : false,
+                processData: false,
+                data : form_data,
+                success: function (result) {
+                        console.log(result);
+                        console.log(result.success);
+                        if (result.success === true) {
+                          location.reload();
                         } else if (result.success === false) {
                              alert(result.message);
                         }

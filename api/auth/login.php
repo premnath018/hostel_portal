@@ -17,7 +17,7 @@ if (isset($_GET['code'])) {
   $name =  $google_account_info->name;
   
 }
-$checkSql = "SELECT * FROM login_users WHERE email_id = '$email'";
+$checkSql = "SELECT * FROM master_users WHERE email_id = '$email'";
 $checkResult = mysqli_query($db, $checkSql);
 $response = array('success' => true, 'message' => 'hello');
   if ($checkResult->num_rows > 0) {

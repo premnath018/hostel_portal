@@ -20,7 +20,15 @@
           <i class="mdi mdi-buffer menu-icon"></i>
         </a>
       </li>
+      
       <li class="nav-item">
+        <a class="nav-link" href="../roomquery">
+          <span class="menu-title">Room Query</span>
+          <i class="mdi mdi-home menu-icon"></i>
+        </a>
+      </li>
+
+      <!-- <li class="nav-item">
         <a class="nav-link" data-bs-toggle="collapse" href="#room-query" aria-expanded="false" aria-controls="ui-basic">
           <span class="menu-title">Room Query</span>
           <i class="menu-arrow"></i>
@@ -28,7 +36,7 @@
         </a>
         <div class="collapse" id="room-query">
           <ul class="nav flex-column sub-menu">
-            <?php if ($_SESSION['role']!=0){echo 
+            <?php  /* if ($_SESSION['role']!=0){echo 
                '<li class="nav-item"> <a class="nav-link" href="../roomquery/query_list.php">Query List</a></li>
                <li class="nav-item"> <a class="nav-link" href="../roomquery/resolved_list.php">Resolve Queries</a></li>';
             }
@@ -36,23 +44,16 @@
             '<li class="nav-item"> <a class="nav-link" href="../roomquery/query_add.php">Create Query</a></li>
             <li class="nav-item"> <a class="nav-link" href="../roomquery/query_list.php">Query List</a></li>
             <li class="nav-item"> <a class="nav-link" href="../roomquery/resolved_list.php">Resolved Query</a></li>';
-            }
-            ?>
+            } */ 
+            ?> 
           </ul>
         </div>
-      </li>
+      </li> -->
       <li class="nav-item">
-        <a class="nav-link" data-bs-toggle="collapse" href="#drop-down2" aria-expanded="false" aria-controls="ui-basic">
+        <a class="nav-link" href="../suggestions">
           <span class="menu-title">Suggestions</span>
-          <i class="menu-arrow"></i>
           <i class="mdi mdi-help-circle menu-icon"></i>
         </a>
-        <div class="collapse" id="drop-down2">
-          <ul class="nav flex-column sub-menu">
-            <li class="nav-item"> <a class="nav-link" href="pages/ui-features/buttons.html">Create Suggestions</a></li>
-            <li class="nav-item"> <a class="nav-link" href="pages/ui-features/typography.html">Suggestions List</a></li>
-          </ul>
-        </div>
       </li>
       <li class="nav-item">
         <a class="nav-link" data-bs-toggle="collapse" href="#drop-down3" aria-expanded="false" aria-controls="ui-basic">

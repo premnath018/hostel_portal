@@ -6,7 +6,7 @@ include '../db/connection.php';
 $email = $_POST['username'];
 $password = $_POST['password'];
 
-$checkSql = "SELECT * FROM login_users WHERE email_id = ?";
+$checkSql = "SELECT * FROM master_users WHERE email_id = ?";
 $stmt = mysqli_prepare($db, $checkSql);
 mysqli_stmt_bind_param($stmt, "s", $email);
 mysqli_stmt_execute($stmt);

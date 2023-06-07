@@ -67,12 +67,19 @@
                       </div>
                     </div>
                   </div>
+                  <?php 
+                      $Sql = "SELECT * FROM master_category WHERE status = '1' ";
+                      $checkResult = mysqli_query($db, $Sql);
+                  ?>
                       <div class="form-group">
                         <label for="exampleSelectGender">Category</label>
                         <select id="category" class=" form-control" id="SelectCategory">
-                          <option value="1">Electrical</option>
-                          <option value="2">Woodworks</option>
-                          <option value="3">Others</option>
+                   <?php
+                      while ($row = $checkResult->fetch_assoc()){
+                        if ($row['id'] != 2 && $row['id'] != 4 && $row['id'] != 5)
+                       echo "<option value=$row[id]>$row[category_name]</option>";
+                      }
+                   ?>
                         </select>
                       </div>
                       <div class="form-group">
@@ -87,7 +94,7 @@
                         </div>
                       </div>
                       <button onclick="CreateQuery()" class="btn btn-gradient-primary me-2">Submit</button>
-                      <button class="btn btn-light">Cancel</button>
+                      <button type="button" onclick="back()" class="btn btn-light">Cancel</button>
                     </form>
                   </div>
                 </div>
@@ -149,7 +156,7 @@
                         console.log(result);
                         console.log(result.success);
                         if (result.success === true) {
-                          window.location.href='./query_list.php';
+                          window.location.href='./';
                         } else if (result.success === false) {
                              alert(result.message);
                         }
@@ -158,5 +165,8 @@
                     console.log(err);
                 }
             });
+        }
+        function back(){
+          window.history.back();
         }
 </script>

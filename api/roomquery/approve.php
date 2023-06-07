@@ -6,10 +6,11 @@ if ($db) {
     try {
         if (1)
          {
+            $status = '2';
             extract($_POST);
             $uid = $_SESSION['user_id'];
-            $stmt = $db->prepare("UPDATE room_query SET resolved_by=? WHERE  query_id=? ;");
-            $stmt->bind_param('dd',$uid,$q_id);
+            $stmt = $db->prepare("UPDATE room_query SET status=? WHERE  query_id=? ;");
+            $stmt->bind_param('sd',$status,$q_id);
             $stmt->execute();
             if ($stmt->error) {
                 $res['success'] = false;

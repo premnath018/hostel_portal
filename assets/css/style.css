@@ -14550,6 +14550,9 @@ dl {
     border-radius: 0.2rem;
 
 }
-
+.tb-responsive {
+  overflow-x: auto;
+  display: block;
+}
 
 /*# sourceMappingURL=style.css.map */
