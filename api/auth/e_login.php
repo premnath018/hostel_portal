@@ -39,11 +39,22 @@ if ($checkResult->num_rows >0) {
         $_SESSION['user_id']=$info['s_id'];
         $_SESSION['name']=$info['name'];
         $_SESSION['rollno']=$info['s_rollno'];
-        $_SESSION['year']="-";
-        $_SESSION['hostel']=$info['hostel'];
-        $_SESSION['floor']=$info['floor'];
-        $_SESSION['room_no']=$info['room_no'];
+        // $_SESSION['year']="-";
+        // $_SESSION['hostel']=$info['hostel'];
+        // $_SESSION['floor']=$info['floor'];
+        // $_SESSION['room_no']=$info['room_no'];
+        $_SESSION['category']=$info['category'];
+        $_SESSION['role']=$info['role'];
         $_SESSION['role2']=$info['role'];
+        if ($_SESSION['role2']==2){
+            $InfoSql = "SELECT * FROM informations WHERE staff_id = ?";
+            $stmt = mysqli_prepare($db, $InfoSql); mysqli_stmt_bind_param($stmt, "s", $_SESSION['rollno']); mysqli_stmt_execute($stmt); $InfoResult = mysqli_stmt_get_result($stmt);
+            $info = $InfoResult->fetch_assoc();
+            $_SESSION['year']="";
+             $_SESSION['hostel']=$info['hostel'];
+            $_SESSION['floor']=$info['floor'];
+            $_SESSION['room_no']=$info['room_no'];
+        }
     }
     $res['success'] = true;
     $res['message'] = 'Submitted successfully';

@@ -1,3 +1,14 @@
+<?php
+$db = db();
+$result = mysqli_query($db, "SELECT resource FROM roles WHERE id =$_SESSION[role]");
+$row = mysqli_fetch_assoc($result);
+$resource = explode('-', $row['resource']);
+$result = mysqli_query($db, "SELECT * FROM master_resource WHERE STATUS ='1' order by sort_id");
+$menu = array();
+while ($row = mysqli_fetch_assoc($result)) {
+    $menu[] = $row;
+}
+?>
 <nav class="sidebar sidebar-offcanvas" id="sidebar">
     <ul class="nav">
       <li class="nav-item nav-profile">
@@ -14,72 +25,17 @@
           <i class="mdi mdi-bookmark-check text-success nav-profile-badge"></i>
         </a>
       </li>
-      <li class="nav-item">
-        <a class="nav-link" href="../dashboard">
-          <span class="menu-title">Dashboard</span>
-          <i class="mdi mdi-buffer menu-icon"></i>
-        </a>
-      </li>
-      
-      <li class="nav-item">
-        <a class="nav-link" href="../roomquery">
-          <span class="menu-title">Room Query</span>
-          <i class="mdi mdi-home menu-icon"></i>
-        </a>
-      </li>
-
-      <!-- <li class="nav-item">
-        <a class="nav-link" data-bs-toggle="collapse" href="#room-query" aria-expanded="false" aria-controls="ui-basic">
-          <span class="menu-title">Room Query</span>
-          <i class="menu-arrow"></i>
-          <i class="mdi mdi-home menu-icon"></i>
-        </a>
-        <div class="collapse" id="room-query">
-          <ul class="nav flex-column sub-menu">
-            <?php  /* if ($_SESSION['role']!=0){echo 
-               '<li class="nav-item"> <a class="nav-link" href="../roomquery/query_list.php">Query List</a></li>
-               <li class="nav-item"> <a class="nav-link" href="../roomquery/resolved_list.php">Resolve Queries</a></li>';
-            }
-            else{ echo
-            '<li class="nav-item"> <a class="nav-link" href="../roomquery/query_add.php">Create Query</a></li>
-            <li class="nav-item"> <a class="nav-link" href="../roomquery/query_list.php">Query List</a></li>
-            <li class="nav-item"> <a class="nav-link" href="../roomquery/resolved_list.php">Resolved Query</a></li>';
-            } */ 
-            ?> 
-          </ul>
-        </div>
-      </li> -->
-      <li class="nav-item">
-        <a class="nav-link" href="../suggestions">
-          <span class="menu-title">Suggestions</span>
-          <i class="mdi mdi-help-circle menu-icon"></i>
-        </a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" data-bs-toggle="collapse" href="#drop-down3" aria-expanded="false" aria-controls="ui-basic">
-          <span class="menu-title">Mess Queries</span>
-          <i class="menu-arrow"></i>
-          <i class="mdi mdi-food menu-icon"></i>
-        </a>
-        <div class="collapse" id="drop-down3">
-          <ul class="nav flex-column sub-menu">
-            <li class="nav-item"> <a class="nav-link" href="pages/ui-features/buttons.html">Daily Food Rating</a></li>
-            <li class="nav-item"> <a class="nav-link" href="pages/ui-features/typography.html">Mess Suggestions</a></li>
-          </ul>
-        </div>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" href="pages/forms/basic_elements.html">
-          <span class="menu-title">Informations</span>
-          <i class="mdi mdi-format-list-bulleted menu-icon"></i>
-        </a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" href="../../api/auth/logout.php">
-          <span class="menu-title">Log Out</span>
-          <i class="mdi mdi-logout menu-icon"></i>
-        </a>
-      </li>
+       <?php
+                foreach ($menu as $item) {
+                    if (in_array($item['resource_id'], $resource))
+                    echo " <li class='nav-item'>
+                            <a class='nav-link' href='../$item[link]'>
+                              <span class='menu-title'>$item[label]</span>
+                              <i class='mdi mdi-$item[img] menu-icon'></i>
+                            </a>
+                          </li>";
+                }
+        ?>
       </li>
     </ul>
   </nav>
