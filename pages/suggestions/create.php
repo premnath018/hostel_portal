@@ -39,12 +39,12 @@
               <h3 class="page-title">
                 <span class="page-title-icon bg-gradient-primary text-white me-2">
                   <i class="mdi mdi-home"></i>
-                </span> Create Room Query
+                </span> Create Suggestion
               </h3>
             </div>
             <div class="card">
                   <div class="card-body">
-                    <h4 class="card-title">Issue a Room Query</h4>
+                    <h4 class="card-title">Submit suggestion</h4>
                     <br>
                     <form class="forms-sample">
                     <div class="row">
@@ -60,41 +60,40 @@
                         <div class="col-sm-9 col-form-label"><?php echo $_SESSION['hostel']?></div>
                       </div>
                     </div>
-                    <div class="col-md-4">
-                      <div class="form-group row">
-                        <label class="col-sm-4 col-form-label">Room No</label>
-                        <div class="col-sm-8 col-form-label"><?php echo $_SESSION['room_no']?></div>
-                      </div>
-                    </div>
-                  </div>
+                    
+                </div>
                   <?php 
                       $Sql = "SELECT * FROM master_category WHERE status = '1' ";
                       $checkResult = mysqli_query($db, $Sql);
                   ?>
                       <div class="form-group">
-                        <label for="exampleSelectGender">Category</label>
+                        <label for="exampleSelectGender">For</label>
                         <select id="category" class=" form-control" id="SelectCategory">
-                   <?php
-                      while ($row = $checkResult->fetch_assoc()){
-                        if ($row['id'] != 2 && $row['id'] != 4 && $row['id'] != 5)
-                       echo "<option value=$row[id]>$row[category_name]</option>";
-                      }
-                   ?>
-                        </select>
-                      </div>
+                       <option value="1">Hostel</option>
+                       <option value="2">Pathway</option>
+                       <option value="3">Student Center</option>
+                       <option value="4">Laundry</option>
+                       <option value="5">Mini Canteen</option>
+                      </select>
+                        </div>
+                    <div class="form-group">
+                        <label >Suggestion Title</label>
+                        <input type="text" class="form-control" id="suggestiontitle" placeholder="Suggestion Title" required>
+                    </div>
+
                       <div class="form-group">
-                        <label for="exampleTextarea1">Query Statement</label>
-                        <textarea id="problem_statement" class="form-control" id="ProblemStatment" rows="4" required></textarea>
+                        <label>Description</label>
+                        <textarea id="description" class="form-control" id="description" rows="4" required></textarea>
                       </div>
                       <div class="form-group">
                         <label>File upload ( *Optional )</label>
                         <input type="file" name="img[]" class="file-upload-default">
                         <div class="input-group col-xs-12">
-                          <input type="file" id="query_upload"class="form-control file-upload-info" accept="image/x-png,image/jpg,image/jpeg" placeholder="Upload Image">
+                          <input type="file" id="suggestions_upload"class="form-control file-upload-info" accept="image/x-png,image/jpg,image/jpeg" placeholder="Upload Image">
                         </div>
                       </div>
-                      <button type="submit" onclick="CreateQuery()" class="btn btn-gradient-primary me-2">Submit</button>
-                      <button type="button" onclick="back()" class="btn btn-light">Cancel</button>
+                      <button onclick="CreateSuggestions()" class="btn btn-gradient-primary me-2">Submit</button>
+                      <button onclick="back()" class="btn btn-light">Cancel</button>
                     </form>
                   </div>
                 </div>
@@ -133,23 +132,25 @@
 </html>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
 <script>
-        function CreateQuery(){
+        function CreateSuggestions(){
           event.preventDefault();
             var category = $('#category').val().trim();
-            var prob_stmt = $('#problem_statement').val().trim();
-            if (prob_stmt === '') {
-                alert('Please provide the query statement.');
-                return false; //prevent the form from submitting
+            var sugg_title = $('#suggestiontitle').val().trim();
+            var descrip = $('#description').val().trim(); 
+            var file_data= $('#suggestions_upload').prop('files')[0];
+            if (sugg_title == '' || descrip == ''){
+              alert ("Fill The Form");
+              return false;
             }
-            var file_data= $('#query_upload').prop('files')[0];
+            console.log(descrip);
             var form_data = new FormData();
-            console.log('hello-');
-            console.log(category,prob_stmt,file_data)
+            // console.log(category,prob_stmt,file_data)
+            form_data.append('for',category);
             form_data.append('file',file_data);
-            form_data.append('p_category',category);
-            form_data.append('p_statement',prob_stmt);
+            form_data.append('title',sugg_title);
+            form_data.append('descrip',descrip);
             $.ajax({
-                url : './../../api/roomquery/create.php',
+                url : './../../api/suggestions/create.php',
                 method : 'POST',
                 dataType : 'json',
                 cache : false,

@@ -10,7 +10,7 @@
     <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Purple Admin</title>
+    <title>Query List</title>
     <!-- plugins:css -->
     <link rel="stylesheet" href="./../../assets/vendors/mdi/css/materialdesignicons.min.css">
     <link rel="stylesheet" href="./../../assets/vendors/css/vendor.bundle.base.css">
@@ -43,15 +43,30 @@
                   <i class="mdi mdi-home"></i>
                 </span> Room Query List
               </h3>
-              <h3 class="page-title">
-              <a href="./create.php" class="page-title-icon bg-gradient-primary text-white">
-                <i class="mdi mdi-plus"></i>
+              <?php
+              if ($_SESSION['role']== '0'){
+             echo "<h3 class='page-title'>
+              <a href='./create.php' class='page-title-icon bg-gradient-primary text-white'>
+                <i class='mdi mdi-plus'></i>
               </a>
-              </h3>
-            </div>
+              </h3>";}
+              ?>
+              </div>
             <div class="card">
                   <div class="card-body">
-                    <h4 class="card-title">Query List</h4>
+                    <div class="page-header">
+                    <h4 class="page-title">Query List</h4>
+                    <nav aria-label="breadcrumb">
+                        <select id="category" class=" form-control">
+                          <option value="9">All</option>
+                          <option value="1">Submitted</option>
+                          <option value="0">Rejected</option>
+                          <option value="2">In Progress</option>
+                          <option value="3">Completed</option>
+                          <option value="4">Closed</option>                        
+                        </select>
+                  </nav>
+                    </div>
                     <div class="tb-responsive">
                     <table class="table stripe hover row-border order-column" id="example" >
                       <thead>
@@ -67,7 +82,7 @@
                           <th>Action</th>
                         </tr>
                       </thead>
-                      <tbody>
+                      <tbody id="table_body">
                         <?php 
                         $resolve='';
                         $Istmt = '';
@@ -83,7 +98,7 @@
                           if($_SESSION['role'] != 0 && $_SESSION['role2']==2){
                           $resolve = ($row['status'] == 1) ? "<button onclick='approve($row[query_id])' type='button' class='btn-m btn-gradient-success btn-fw' style = 'box-shadow:none; margin-left:3%'>Approve</button>
                           <button onclick='decline($row[query_id])' type='button' class='btn-m btn-gradient-danger btn-fw' style = 'box-shadow:none; margin-left:3%'>Decline</button>" : ""; }
-                          $status = ($row['status'] == 0) ? "danger'>Declinied" : (($row['status'] == 1) ? "success'>Submitted" : (($row['status'] == 2) ? "warning'>In Progress" : "info'>Completed"));
+                          $status = ($row['status'] == 0) ? "danger'>Declinied" : (($row['status'] == 1) ? "success'>Submitted" : (($row['status'] == 2) ? "warning'>In Progress" : (($row['status']==3)?  "info'>Completed" : "success'>Closed")));
                           $catgory = ($row['problem_category'] == 1) ? 'Electrical' : ((($row['problem_category'] == 2) ? 'Carpentary' : 'Others'));
                             echo "<tr>";
                             echo "<td>RQ-$row[query_id]</td>
@@ -137,16 +152,86 @@
 </html>
 
 <script>
-    $(document).ready(function() {
-    var table = $('#example').DataTable( {
-        "order": [[ 6, "desc" ]],
-        responsive: true,
-        lengthChange: false,
-        buttons: [ 'csv', 'excel', 'pdf', 'colvis' ]
-    } );
-    table.buttons().container()
-        .appendTo( '#example_wrapper .col-md-6:eq(0)' );
-} );
+  dtable();
+     var table;
+     function dtable(){
+     table = $('#example').DataTable( {
+         "order": [[ 6, "desc" ]],
+         responsive: true,
+         lengthChange: false,
+         buttons: [ 'csv', 'excel', 'pdf']
+     } );
+     table.buttons().container()
+         .appendTo( '#example_wrapper .col-md-6:eq(0)' );
+    }
+
+
+$("#category").on("change", function() {
+  var selectedValue = $(this).val();
+  var form_data = new FormData();
+  form_data.append("status",selectedValue);
+  console.log(selectedValue);
+  $.ajax({
+          url : './../../api/roomquery/getquery.php',
+          method : 'POST',
+          dataType : 'json',
+          cache : false,
+          contentType : false,
+          processData: false,
+          data : form_data,
+          success: function (result) {
+                if (result.success === true) {
+                  var check = result.check;
+                  table.destroy();
+                  $('#table_body').empty();
+                    let data = result.data
+                    data.forEach(element => {
+                    var action = "";
+                      if (( check === '2' )&& (element.status === '1')){
+                      console.log("Hello");
+                     action = `<button onclick='approve(${element.query_id}))' type='button' class='btn-m btn-gradient-success btn-fw' style = 'box-shadow:none; margin-left:3%'>Approve</button> <button onclick='decline(${element.query_id})' type='button' class='btn-m btn-gradient-danger btn-fw' style = 'box-shadow:none; margin-left:3%'>Decline</button>`; 
+                  }
+                    
+                    const category = (element.problem_category === '1') ? 'Electrical' :
+                   ((element.problem_category === '2') ? 'Plumbing' :
+                   ((element.problem_category === '3') ? 'Carpentry' :
+                   ((element.problem_category === '4') ? 'Cleaning' :
+                   ((element.problem_category === '5') ? 'Civil Work' :
+                   'Others'))));
+                   const status = (element.status === '0') ? "danger'>Declined" :
+                    ((element.status === '1') ? "success'>Submitted" :
+                    ((element.status === '2') ? "warning'>In Progress" :
+                    ((element.status === '3') ? "info'>Completed" :
+                    ((element.status === '4') ? "success'>Closed": 
+                     ""))));
+                    $('#table_body').append(`
+                    <tr>
+                    <td>RQ-${element.query_id}</td>
+                    <td>${element.rollno}</td>
+                    <td>${element.hostel}</td>
+                    <td>${element.room_no}</td>
+                    <td><label>${category}</label></td>
+                    <td><label>${element.problem_statement}</label></td>
+                    <td><label class='badge badge-${status}</label></td>
+                    <td>${element.date}</td>
+                    <td><button onclick='view(${element.query_id})' type='button' class='btn-m btn-gradient-primary btn-fw'>View</button>${action}</td>
+                  </tr>;
+                    `)
+                  });
+                    dtable(); 
+                }
+
+                 
+                  if (result.success === false) {
+                      alert(result.message);
+                  }
+          },
+          error: function (err) {
+              console.log(err);
+          }
+      });
+   
+});
 
 function view(id_no){
         let id = id_no;

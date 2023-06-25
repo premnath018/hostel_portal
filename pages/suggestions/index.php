@@ -10,7 +10,7 @@
     <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Purple Admin</title>
+    <title>Suggestions</title>
     <!-- plugins:css -->
     <link rel="stylesheet" href="./../../assets/vendors/mdi/css/materialdesignicons.min.css">
     <link rel="stylesheet" href="./../../assets/vendors/css/vendor.bundle.base.css">
@@ -41,62 +41,75 @@
               <h3 class="page-title">
                 <span class="page-title-icon bg-gradient-primary text-white me-2">
                   <i class="mdi mdi-home"></i>
-                </span> Suggestion Box
+                </span> Suggestions
               </h3>
-              <h3 class="page-title">
-              <a href="./query_add.php" class="page-title-icon bg-gradient-primary text-white">
-                <i class="mdi mdi-plus"></i>
+              <?php
+              if ($_SESSION['role']== '0'){
+             echo "<h3 class='page-title'>
+              <a href='./create.php' class='page-title-icon bg-gradient-primary text-white'>
+                <i class='mdi mdi-plus'></i>
               </a>
-              </h3>
-            </div>
+              </h3>";}
+              ?>
+              </div>
             <div class="card">
                   <div class="card-body">
-                    <h4 class="card-title">Suggestion List </h4>
-                    <table class="table stripe hover row-border order-column" id="example">
+                    <div class="page-header">
+                    <h4 class="page-title">Suggestions List</h4>
+                    <nav aria-label="breadcrumb">
+                        <select id="category" class=" form-control">
+                          <option value="9">All</option>
+                          <option value="1">Submitted</option>
+                          <option value="0">Rejected</option>
+                          <option value="2">In Progress</option>
+                          <option value="3">Completed</option>
+                          <option value="4">Closed</option>                        
+                        </select>
+                  </nav>
+                    </div>
+                    <div class="tb-responsive">
+                    <table class="table stripe hover row-border order-column" id="example" >
                       <thead>
                         <tr>
-                          <th>Query Id</th>
+                          <th>Id</th>
                           <th>Reported By</th>
                           <th>Hostel</th>
-                          <th>Room No</th>
-                          <th>Category</th>
-                          <th>Status</th>
+                          <th>For Place</th>
+                          <th>Suggestion Title</th>
                           <th>Date</th>
                           <th>Action</th>
                         </tr>
                       </thead>
-                      <tbody>
+                      <tbody id="table_body">
                         <?php 
                         $resolve='';
                         $Istmt = '';
                         if($_SESSION['role'] == 0){
-                            $Istmt = "SELECT q.query_id,q.date,s.rollno,q.hostel,q.room_no,q.problem_category,q.problem_statement,q.resolved_by FROM room_query q left join students_info s ON q.reported_by=s.id WHERE q.room_no = ? AND q.hostel = ? ORDER BY q.query_id DESC;";
-                            $stmt = mysqli_prepare($db, $Istmt); mysqli_stmt_bind_param($stmt, "ds", $_SESSION['room_no'],$_SESSION['hostel']); mysqli_stmt_execute($stmt); $result = mysqli_stmt_get_result($stmt);
+                            $Istmt = "SELECT q.sg_id,q.date,s.rollno,q.hostel,q.for_place,q.suggestion_title FROM suggestions q left join students_info s ON q.reported_by=s.id  AND q.hostel = ? ORDER BY q.sg_id DESC;";
+                            $stmt = mysqli_prepare($db, $Istmt); mysqli_stmt_bind_param($stmt, "s",$_SESSION['hostel']); mysqli_stmt_execute($stmt); $result = mysqli_stmt_get_result($stmt);
                           }
                         if ($_SESSION['role']!=0 && $_SESSION['role2']){
-                          $Istmt = "SELECT q.query_id,q.date,s.rollno,q.hostel,q.room_no,q.problem_category,q.problem_statement,q.resolved_by FROM room_query q left join students_info s ON q.reported_by=s.id WHERE q.hostel = ? ORDER BY q.query_id DESC;";
+                          $Istmt = "SELECT q.query_id,q.date,s.rollno,q.hostel,q.room_no,q.problem_category,q.problem_statement,q.resolved_by,q.status FROM room_query q left join students_info s ON q.reported_by=s.id WHERE q.hostel = ? ORDER BY q.query_id DESC;";
                           $stmt = mysqli_prepare($db, $Istmt); mysqli_stmt_bind_param($stmt, "s",$_SESSION['hostel']); mysqli_stmt_execute($stmt); $result = mysqli_stmt_get_result($stmt);
                         }
-                        while ($row = mysqli_fetch_array($result)) {
-                          if($_SESSION['role'] != 0 && $_SESSION['role2']==2)
-                          $resolve = "<button onclick='resolve($row[query_id])' type='button' class='btn-m btn-gradient-success btn-fw' style = 'box-shadow:none; margin-left:5%'>Resolve</button>";
-                          $status ='';
-                          $catgory = ($row['problem_category'] == 1) ? 'Electrical' : ((($row['problem_category'] == 2) ? 'Woodworks' : 'Others'));
-                          if (isset($row['resolved_by'])){$resolve=''; $status = "<td><label class='badge badge-success'>Resolved</label></td>"; }
-                          else { $status = "<td><label class='badge badge-warning'>Initiated</label></td>";}
-                            echo "<tr>";
-                            echo "<td>RQ-$row[query_id]</td>
+                        while ($row = mysqli_fetch_array($result)) {$upvote = "
+                          <button type='button' class='btn btn-inverse-primary btn-rounded btn-icon'>
+                          <i class='mdi mdi-thumb-up-outline'></i>
+                        </button>";
+                          $for_place = ($row['for_place'] == 1) ? 'Hostel' : (($row['for_place'] == 2) ? 'Pathway' : (($row['for_place'] == 3) ? 'Student Center' : (($row['for_place'] == 4) ? 'Laundry' : 'Mini Canteen')));                            echo "<tr>";
+                            echo "<td>SG-$row[sg_id]</td>
                             <td>$row[rollno]</td>
                             <td>$row[hostel]</td>
-                            <td>$row[room_no]</td>
-                            <td><label>$catgory</label></td>$status
+                            <td><label>$for_place</label></td>
+                            <td><label>$row[suggestion_title]</label></td>
                             <td>$row[date]</td>
-                            <td><button onclick='view($row[query_id])' type='button' class='btn-m btn-gradient-primary btn-fw'>View</button>$resolve</td>
+                            <td><button onclick='view($row[sg_id])' type='button' class='btn-m btn-gradient-primary btn-fw' style='margin-right:4px;'>View</button>$upvote</td>
                           </tr>";
                         }
                         ?>
                       </tbody>
                     </table>
+                    </div>
                   </div>
                 </div>
             </div>
@@ -133,15 +146,86 @@
 </html>
 
 <script>
-    $(document).ready(function() {
-    var table = $('#example').DataTable( {
-        "order": [[ 5, "asc" ]],
-        lengthChange: false,
-        buttons: [ 'copy', 'excel', 'pdf', 'colvis' ]
-    } );
-    table.buttons().container()
-        .appendTo( '#example_wrapper .col-md-6:eq(0)' );
-} );
+  dtable();
+     var table;
+     function dtable(){
+     table = $('#example').DataTable( {
+         "order": [[ 0, "desc" ]],
+         responsive: true,
+         lengthChange: false,
+         buttons: [ 'csv', 'excel', 'pdf']
+     } );
+     table.buttons().container()
+         .appendTo( '#example_wrapper .col-md-6:eq(0)' );
+    }
+
+
+$("#category").on("change", function() {
+  var selectedValue = $(this).val();
+  var form_data = new FormData();
+  form_data.append("status",selectedValue);
+  console.log(selectedValue);
+  $.ajax({
+          url : './../../api/roomquery/getquery.php',
+          method : 'POST',
+          dataType : 'json',
+          cache : false,
+          contentType : false,
+          processData: false,
+          data : form_data,
+          success: function (result) {
+                if (result.success === true) {
+                  var check = result.check;
+                  table.destroy();
+                  $('#table_body').empty();
+                    let data = result.data
+                    data.forEach(element => {
+                    var action = "";
+                      if (( check === '2' )&& (element.status === '1')){
+                      console.log("Hello");
+                     action = `<button onclick='approve(${element.query_id}))' type='button' class='btn-m btn-gradient-success btn-fw' style = 'box-shadow:none; margin-left:3%'>Approve</button> <button onclick='decline(${element.query_id})' type='button' class='btn-m btn-gradient-danger btn-fw' style = 'box-shadow:none; margin-left:3%'>Decline</button>`; 
+                  }
+                    
+                    const category = (element.problem_category === '1') ? 'Electrical' :
+                   ((element.problem_category === '2') ? 'Plumbing' :
+                   ((element.problem_category === '3') ? 'Carpentry' :
+                   ((element.problem_category === '4') ? 'Cleaning' :
+                   ((element.problem_category === '5') ? 'Civil Work' :
+                   'Others'))));
+                   const status = (element.status === '0') ? "danger'>Declined" :
+                    ((element.status === '1') ? "success'>Submitted" :
+                    ((element.status === '2') ? "warning'>In Progress" :
+                    ((element.status === '3') ? "info'>Completed" :
+                    ((element.status === '4') ? "success'>Closed": 
+                     ""))));
+                    $('#table_body').append(`
+                    <tr>
+                    <td>RQ-${element.query_id}</td>
+                    <td>${element.rollno}</td>
+                    <td>${element.hostel}</td>
+                    <td>${element.room_no}</td>
+                    <td><label>${category}</label></td>
+                    <td><label>${element.problem_statement}</label></td>
+                    <td><label class='badge badge-${status}</label></td>
+                    <td>${element.date}</td>
+                    <td><button onclick='view(${element.query_id})' type='button' class='btn-m btn-gradient-primary btn-fw'>View</button>${action}</td>
+                  </tr>;
+                    `)
+                  });
+                    dtable(); 
+                }
+
+                 
+                  if (result.success === false) {
+                      alert(result.message);
+                  }
+          },
+          error: function (err) {
+              console.log(err);
+          }
+      });
+   
+});
 
 function view(id_no){
         let id = id_no;
@@ -149,12 +233,12 @@ function view(id_no){
         window.location.href = "./view.php?id=" + id;
     }
 
-    function resolve(qid){
+    function approve(qid){
             var id = qid;
             var form_data = new FormData();
             form_data.append('q_id',id);
             $.ajax({
-                url : './../../api/roomquery/resolve.php',
+                url : './../../api/roomquery/approve.php',
                 method : 'POST',
                 dataType : 'json',
                 cache : false,
@@ -165,7 +249,33 @@ function view(id_no){
                         console.log(result);
                         console.log(result.success);
                         if (result.success === true) {
-                          window.location.href='./query_list.php';
+                          location.reload();
+                        } else if (result.success === false) {
+                             alert(result.message);
+                        }
+                },
+                 error: function (err) {
+                    console.log(err);
+                }
+            });
+        }
+        function decline(qid){
+            var id = qid;
+            var form_data = new FormData();
+            form_data.append('q_id',id);
+            $.ajax({
+                url : './../../api/roomquery/decline.php',
+                method : 'POST',
+                dataType : 'json',
+                cache : false,
+                contentType : false,
+                processData: false,
+                data : form_data,
+                success: function (result) {
+                        console.log(result);
+                        console.log(result.success);
+                        if (result.success === true) {
+                          location.reload();
                         } else if (result.success === false) {
                              alert(result.message);
                         }

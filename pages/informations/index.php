@@ -10,7 +10,7 @@
     <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Purple Admin</title>
+    <title>Informations</title>
     <!-- plugins:css -->
     <link rel="stylesheet" href="./../../assets/vendors/mdi/css/materialdesignicons.min.css">
     <link rel="stylesheet" href="./../../assets/vendors/css/vendor.bundle.base.css">
@@ -51,27 +51,25 @@
                       <thead>
                         <tr>
                           <th>Name</th>
-                          <th>Position</th>
+                          <th>Desigination</th>
                           <th>Hostel</th>
+                          <th>Room No</th>
                           <th>Phone</th>
                         </tr>
                       </thead>
                       <tbody>
                         <?php 
-                       
+                        $Info = "SELECT * FROM informations";
+                        $stmt = mysqli_prepare($db, $Info); mysqli_stmt_execute($stmt); $result = mysqli_stmt_get_result($stmt);
                         while ($row = mysqli_fetch_array($result)) {
                          
                             echo "<tr>";
-                            echo "<td>RQ-$row[query_id]</td>
-                            <td>$row[rollno]</td>
+                            echo "<td>$row[name]</td>
+                            <td>$row[desigination]</td>
                             <td>$row[hostel]</td>
                             <td>$row[room_no]</td>
-                            <td><label>$catgory</label></td>
-                            <td><label>$row[problem_statement]</label></td>
-                            <td><label class='badge badge-$status</label></td>
-                            <td>$row[date]</td>
-                            <td><button onclick='view($row[query_id])' type='button' class='btn-m btn-gradient-primary btn-fw'>View</button>$resolve</td>
-                          </tr>";
+                            <td>$row[phone]</td>
+                            </tr>";
                         }
                         ?>
                       </tbody>
@@ -115,12 +113,10 @@
 <script>
     $(document).ready(function() {
     var table = $('#example').DataTable( {
-        "order": [[ 6, "desc" ]],
+        // "order": [[ 6, "desc" ]],
         responsive: true,
         lengthChange: false,
     } );
-    table.buttons().container()
-        .appendTo( '#example_wrapper .col-md-6:eq(0)' );
 } );
 
 function view(id_no){

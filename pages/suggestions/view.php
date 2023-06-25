@@ -42,55 +42,52 @@
               </a>
                 <span class="page-title-icon bg-gradient-primary text-white me-2">
                   <i class="mdi mdi-home"></i>
-                </span> Room Query Details
+                </span>Suggestion Details
               </h3>
             </div>
             <?php 
                 $id = $_GET['id'];
-                $Istmt = "SELECT q.query_id,q.date,s.rollno,s.name,q.hostel,q.room_no,q.problem_category,q.problem_statement,q.resolved_by,q.query_photo_link,q.status FROM room_query q left join students_info s ON q.reported_by=s.id WHERE q.query_id = ? ;";
+                $Istmt = "SELECT q.sg_id,q.date,s.name,s.rollno,q.hostel,q.for_place,q.suggestion_title,q.sg_descrip,q.sg_photo_link FROM suggestions q left join students_info s ON q.reported_by=s.id  WHERE q.sg_id = ?;";
                 $stmt = mysqli_prepare($db, $Istmt); mysqli_stmt_bind_param($stmt, "d",$id); mysqli_stmt_execute($stmt); $result = mysqli_stmt_get_result($stmt);
                 $row = mysqli_fetch_array($result);
-                $category = ($row['problem_category'] == 1) ? 'Electrical' : ((($row['problem_category'] == 2) ? 'Woodworks' : 'Others'));
-                $status = ($row['status'] == 0) ? 'Declined' : (($row['status'] == 1) ? 'Submitted' : (($row['status'] == 2) ? 'In Progress' : 'Completed'));
-           ?>
+                $for_place = ($row['for_place'] == 1) ? 'Hostel' : (($row['for_place'] == 2) ? 'Pathway' : (($row['for_place'] == 3) ? 'Student Center' : (($row['for_place'] == 4) ? 'Laundry' : 'Mini Canteen')));
+            ?>
             <div class="card">
                   <div class="card-body">
-                    <h4 class="card-title">View Room Query</h4>
+                    <h4 class="card-title">View Suggestion</h4>
                       <div class="form-group row" style="margin-bottom: 0rem;">
-                        <label class="col-sm-2 col-form-label">Room Query Id</label>
-                        <span class="col-sm-9 col-form-label"><?php echo "RQ-".$row['query_id'] ?></span>
+                        <label class="col-sm-2 col-form-label">Suggestion Id</label>
+                        <span class="col-sm-9 col-form-label"><?php echo "SG-".$row['sg_id'] ?></span>
                       </div>
                       <div class="form-group row" style="margin-bottom: 0rem;">
                         <label class="col-sm-2 col-form-label">Reported By</label>
                         <span class="col-sm-9 col-form-label"><?php echo $row['name'].' - '.$row['rollno'] ?></span>
                       </div>
                       <div class="form-group row" style="margin-bottom: 0rem;">
-                        <label class="col-sm-2 col-form-label">Hostel & Room No:</label>
-                        <span class="col-sm-9 col-form-label"><?php echo $row['hostel'].' - '.$row['room_no'] ?></span>
+                        <label class="col-sm-2 col-form-label">Hostel</label>
+                        <span class="col-sm-9 col-form-label"><?php echo $row['hostel']?></span>
                       </div>
                       <div class="form-group row" style="margin-bottom: 0rem;">
-                        <label class="col-sm-2 col-form-label">Problem Category & Statement:</label>
-                        <span class="col-sm-9 col-form-label"><?php echo $category.' - '.$row['problem_statement'] ?></span>
+                        <label class="col-sm-2 col-form-label">For & Title:</label>
+                        <span class="col-sm-9 col-form-label"><?php echo $for_place.' - '.$row['suggestion_title'] ?></span>
                       </div>
+                        <div class="form-group row" style="margin-bottom: 0rem;">
+                            <label class="col-sm-2 col-form-label">Description:</label>
+                            <span class="col-sm-9 col-form-label"><?php echo $row['sg_descrip'] ?></span>
+                        </div>
                       <div class="form-group row" style="margin-bottom: 0rem;">
                         <label class="col-sm-2 col-form-label">Reported Date:</label>
                         <span class="col-sm-9 col-form-label"><?php echo $row['date']?></span>
                       </div>
-                      <div class="form-group row" style="margin-bottom: 0rem;">
-                        <label class="col-sm-2 col-form-label">Status:</label>
-                        <span class="col-sm-9 col-form-label"><?php echo $status ?></span>
-                      </div>
+                    
                       <div class="form-group row" style="margin-bottom: 0rem;">
                         <label class="col-sm-2 col-form-label">Photo:</label>
-                       <div> <img src="<?php echo $row['query_photo_link'] ?>" alt="No Photos Added" style="max-width:720px; max-height:480px;"> </div>
+                       <div> <img src="<?php echo $row['sg_photo_link'] ?>" alt="No Photos Added" style="max-width:720px; max-height:480px;"> </div>
                       </div>
                     <br>
                     <?php
                      if($_SESSION['role']=='0'){
-                      if ($row['status']=='1')
-                      echo "<button onclick='DeleteQuery($row[query_id])' type='button' style='box-shadow:none;' class='btn btn-gradient-danger btn-fw'>Delete Query</button>";
-                      if ($row['status']=='3')
-                      echo "<button onclick='close($row[query_id])' type='button' style='box-shadow:none;' class='btn btn-gradient-success btn-fw'>Close Query</button>";
+                      echo "<button onclick='DeleteSuggestion($row[sg_id])' type='button' style='box-shadow:none;' class='btn btn-gradient-danger btn-fw'>Delete Suggestion</button>";
                     }
                     else if(($row['status']==1))
                     echo "<button onclick='approve($row[query_id])' type='button' style='box-shadow:none;' class='btn btn-gradient-success btn-fw'>Approve Query</button>
@@ -136,7 +133,7 @@
 </html>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
 <script>
-        function DeleteQuery(qid){
+        function DeleteSuggestion(qid){
             var id = qid;
             var form_data = new FormData();
             form_data.append('q_id',id);
