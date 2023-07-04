@@ -3,6 +3,7 @@
     include './../../api/db/connection.php';
     checkSession();
     $path = $GLOBALS['_path'];
+    CheckRole("3-4-5",$_SESSION['role'])
   ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -46,7 +47,21 @@
             </div>
             <div class="card">
                   <div class="card-body">
-                    <h4 class="card-title">Queued Tasks</h4>
+                    <div class="page-header">
+                    <h4 class="page-title">Task List</h4>
+                    <nav aria-label="breadcrumb" style="display:inline-flex">
+                    <select id="category1" class="form-control" style="display: inline;">
+                      <option value="9">Room Tasks</option>
+                      <option value="1">Suggestion Tasks</option>                       
+                    </select>
+                    <select id="category2" class="form-control" style="display: inline;">
+                      <option value="9">All</option>
+                      <option value="1">Queued</option>
+                      <option value="0">Initiated</option>
+                      <option value="2">Completed</option>
+                    </select>
+                  </nav>
+                    </div>
                     <div class="tb-responsive">
                     <table class="table stripe hover row-border order-column" id="example" >
                       <thead>
@@ -65,9 +80,9 @@
                         <?php 
                        
                         $task_status = $_SESSION['role2'] == 4 ? 0 : ($_SESSION['role2'] == 5 ? 1 : null);
-                        $Istmt = "SELECT q.query_id, q.date, s.rollno, q.hostel, q.room_no, q.problem_category, q.problem_statement, q.resolved_by, q.status FROM room_query q LEFT JOIN students_info s ON q.reported_by = s.id WHERE q.task_status" . (isset($task_status) ? " = '$task_status'" : " IS NULL") . " AND q.status = '2' AND q.problem_category = ".$_SESSION['category']." ORDER BY q.query_id DESC;";
+                        $Istmt = "SELECT q.query_id, q.date, s.rollno, q.hostel, q.room_no, q.problem_category, q.problem_statement, q.status FROM room_query q LEFT JOIN students_info s ON q.reported_by = s.id WHERE q.task_status" . (isset($task_status) ? " = '$task_status'" : " IS NULL") . " AND q.status = '2' AND q.problem_category = ".$_SESSION['category']." ORDER BY q.query_id DESC;";
                         if ($_SESSION['role']=='3'){
-                          $Istmt = "SELECT q.query_id, q.date, s.rollno, q.hostel, q.room_no, q.problem_category, q.problem_statement, q.resolved_by, q.status FROM room_query q LEFT JOIN students_info s ON q.reported_by = s.id WHERE q.task_status" . (isset($task_status) ? " = '$task_status'" : " IS NULL") . " AND q.status = '2' AND q.task_status IS NULL ORDER BY q.query_id DESC;";}
+                          $Istmt = "SELECT q.query_id, q.date, s.rollno, q.hostel, q.room_no, q.problem_category, q.problem_statement, q.status FROM room_query q LEFT JOIN students_info s ON q.reported_by = s.id WHERE q.task_status" . (isset($task_status) ? " = '$task_status'" : " IS NULL") . " AND q.status = '2' AND q.task_status IS NULL ORDER BY q.query_id DESC;";}
                           $stmt = mysqli_prepare($db, $Istmt); mysqli_stmt_execute($stmt); $result = mysqli_stmt_get_result($stmt);                       
                           while ($row = mysqli_fetch_array($result)) {
                           $action = $_SESSION['role2'] == 3 ? "<button onclick='generate({$row['query_id']})' type='button' class='btn-m btn-gradient-success btn-fw' style='box-shadow:none; margin-left:3%'>Generate Task Id</button>" :

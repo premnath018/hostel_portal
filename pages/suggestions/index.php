@@ -58,17 +58,18 @@
                     <h4 class="page-title">Suggestions List</h4>
                     <nav aria-label="breadcrumb">
                         <select id="category" class=" form-control">
-                          <option value="9">All</option>
-                          <option value="1">Submitted</option>
-                          <option value="0">Rejected</option>
-                          <option value="2">In Progress</option>
-                          <option value="3">Completed</option>
-                          <option value="4">Closed</option>                        
+                          <option value="0">All</option>
+                          <option value="1">Hostel</option>
+                          <option value="2">Pathway</option>
+                          <option value="3">Students Center</option>
+                          <option value="4">Laundry</option>
+                          <option value="5">Mini Canteen</option>                        
+                          <option value="7">Marked</option>                        
                         </select>
                   </nav>
                     </div>
                     <div class="tb-responsive">
-                    <table class="table stripe hover row-border order-column" id="example" >
+                    <table class="table stripe hover row-border order-column" id="example">
                       <thead>
                         <tr>
                           <th>Id</th>
@@ -78,33 +79,46 @@
                           <th>Suggestion Title</th>
                           <th>Date</th>
                           <th>Action</th>
+                          <th>Likes</th>
                         </tr>
                       </thead>
                       <tbody id="table_body">
-                        <?php 
+                        <?php
                         $resolve='';
                         $Istmt = '';
-                        if($_SESSION['role'] == 0){
-                            $Istmt = "SELECT q.sg_id,q.date,s.rollno,q.hostel,q.for_place,q.suggestion_title FROM suggestions q left join students_info s ON q.reported_by=s.id  AND q.hostel = ? ORDER BY q.sg_id DESC;";
-                            $stmt = mysqli_prepare($db, $Istmt); mysqli_stmt_bind_param($stmt, "s",$_SESSION['hostel']); mysqli_stmt_execute($stmt); $result = mysqli_stmt_get_result($stmt);
+
+                          $Istmt = "SELECT q.sg_id, s.rollno, q.hostel, q.for_place, q.suggestion_title, q.`date`,q.`status`,
+                                        SUM(CASE WHEN l.`action` = '1' THEN 1 ELSE 0 END) AS num_likes,
+                                        IF(SUM(CASE WHEN l.user_id = $_SESSION[user_id] AND l.`action` = '1' THEN 1 ELSE 0 END) > 0, 'liked', 'not_liked') AS user_like_status
+                                    FROM suggestions q
+                                    LEFT JOIN students_info s ON q.reported_by = s.id
+                                    LEFT JOIN likes l ON q.sg_id = l.post_id  WHERE q.`status` = '0'
+                                    GROUP BY q.sg_id, s.rollno, q.hostel, q.for_place, q.suggestion_title, q.`date`
+                                    ORDER BY q.sg_id DESC;";
+                          $stmt = mysqli_prepare($db, $Istmt);
+                          mysqli_stmt_execute($stmt);
+                          $result = mysqli_stmt_get_result($stmt);
+
+                        while ($row = mysqli_fetch_array($result)) {
+                          if (($row['for_place'] == '1') &&($row['hostel'] != $_SESSION['hostel']))
+                            continue;
+                          if ($_SESSION['role']== '2')
+                          $action = "<button onclick='mark($row[sg_id])' type='button' class='btn-m btn-gradient-warning btn-fw' style='box-shadow:none; margin-left:3%'>Mark</button>";
+                          else{  
+                          $class_name = ($row['user_like_status'] == 'liked') ? '' : '-outline';
+                          $action = "<button type='button' class='btn btn-inverse-primary btn-rounded btn-icon' onclick=like($row[sg_id])><i id='s$row[sg_id]' class='mdi mdi-thumb-up$class_name'></i></button>";
                           }
-                        if ($_SESSION['role']!=0 && $_SESSION['role2']){
-                          $Istmt = "SELECT q.query_id,q.date,s.rollno,q.hostel,q.room_no,q.problem_category,q.problem_statement,q.resolved_by,q.status FROM room_query q left join students_info s ON q.reported_by=s.id WHERE q.hostel = ? ORDER BY q.query_id DESC;";
-                          $stmt = mysqli_prepare($db, $Istmt); mysqli_stmt_bind_param($stmt, "s",$_SESSION['hostel']); mysqli_stmt_execute($stmt); $result = mysqli_stmt_get_result($stmt);
-                        }
-                        while ($row = mysqli_fetch_array($result)) {$upvote = "
-                          <button type='button' class='btn btn-inverse-primary btn-rounded btn-icon'>
-                          <i class='mdi mdi-thumb-up-outline'></i>
-                        </button>";
-                          $for_place = ($row['for_place'] == 1) ? 'Hostel' : (($row['for_place'] == 2) ? 'Pathway' : (($row['for_place'] == 3) ? 'Student Center' : (($row['for_place'] == 4) ? 'Laundry' : 'Mini Canteen')));                            echo "<tr>";
-                            echo "<td>SG-$row[sg_id]</td>
-                            <td>$row[rollno]</td>
-                            <td>$row[hostel]</td>
-                            <td><label>$for_place</label></td>
-                            <td><label>$row[suggestion_title]</label></td>
-                            <td>$row[date]</td>
-                            <td><button onclick='view($row[sg_id])' type='button' class='btn-m btn-gradient-primary btn-fw' style='margin-right:4px;'>View</button>$upvote</td>
-                          </tr>";
+                          $for_place = ($row['for_place'] == 1) ? 'Hostel' : (($row['for_place'] == 2) ? 'Pathway' : (($row['for_place'] == 3) ? 'Student Center' : (($row['for_place'] == 4) ? 'Laundry' : 'Mini Canteen')));
+                          echo "<tr>";
+                          echo "<td>SG-$row[sg_id]</td>
+                                <td>$row[rollno]</td>
+                                <td>$row[hostel]</td>
+                                <td><label>$for_place</label></td>
+                                <td><label>$row[suggestion_title]</label></td>
+                                <td>$row[date]</td>
+                                <td><button onclick='view($row[sg_id])' type='button' class='btn-m btn-gradient-primary btn-fw' style='margin-right:4px;'>View</button>$action</td>
+                                <td><span id='lc$row[sg_id]' style='cursor:auto; color:#128fc8;' class='btn btn-icon'>$row[num_likes]</span></td>
+                                </tr>";
                         }
                         ?>
                       </tbody>
@@ -160,71 +174,113 @@
     }
 
 
-$("#category").on("change", function() {
+function like(id){
+  var action;
+  var sid = "#s" + id;
+  var lid = "#lc" + id;
+  var action = $(sid).hasClass('mdi-thumb-up-outline') ? 'liked' : 'not_liked';
+  var value = $(sid).hasClass('mdi-thumb-up-outline') ? '1' : '0';
+  $.ajax({
+      url: './../../api/suggestions/action.php',
+      method: 'POST',
+      data: {
+        post_id: id,
+        action: action,
+        value: value
+      },
+      success: function(result) {
+        var response = JSON.parse(result);
+        console.log(response.count);
+          if (action == 'not_liked')
+          $(sid).removeClass('mdi-thumb-up').addClass('mdi-thumb-up-outline');
+          if (action == 'liked')
+          $(sid).removeClass('mdi-thumb-up-outline').addClass('mdi-thumb-up');    
+
+          $(lid).html(response.count);
+          table.destroy();
+          dtable();
+
+      },
+      error: function(xhr, status, error) {
+        console.log(error);
+      }
+    });
+  }
+
+
+  $("#category").on("change", function() {
   var selectedValue = $(this).val();
   var form_data = new FormData();
-  form_data.append("status",selectedValue);
+  
+  form_data.append("forplace", selectedValue);
+  
   console.log(selectedValue);
+  
   $.ajax({
-          url : './../../api/roomquery/getquery.php',
-          method : 'POST',
-          dataType : 'json',
-          cache : false,
-          contentType : false,
-          processData: false,
-          data : form_data,
-          success: function (result) {
-                if (result.success === true) {
-                  var check = result.check;
-                  table.destroy();
-                  $('#table_body').empty();
-                    let data = result.data
-                    data.forEach(element => {
-                    var action = "";
-                      if (( check === '2' )&& (element.status === '1')){
-                      console.log("Hello");
-                     action = `<button onclick='approve(${element.query_id}))' type='button' class='btn-m btn-gradient-success btn-fw' style = 'box-shadow:none; margin-left:3%'>Approve</button> <button onclick='decline(${element.query_id})' type='button' class='btn-m btn-gradient-danger btn-fw' style = 'box-shadow:none; margin-left:3%'>Decline</button>`; 
-                  }
-                    
-                    const category = (element.problem_category === '1') ? 'Electrical' :
-                   ((element.problem_category === '2') ? 'Plumbing' :
-                   ((element.problem_category === '3') ? 'Carpentry' :
-                   ((element.problem_category === '4') ? 'Cleaning' :
-                   ((element.problem_category === '5') ? 'Civil Work' :
-                   'Others'))));
-                   const status = (element.status === '0') ? "danger'>Declined" :
-                    ((element.status === '1') ? "success'>Submitted" :
-                    ((element.status === '2') ? "warning'>In Progress" :
-                    ((element.status === '3') ? "info'>Completed" :
-                    ((element.status === '4') ? "success'>Closed": 
-                     ""))));
-                    $('#table_body').append(`
-                    <tr>
-                    <td>RQ-${element.query_id}</td>
-                    <td>${element.rollno}</td>
-                    <td>${element.hostel}</td>
-                    <td>${element.room_no}</td>
-                    <td><label>${category}</label></td>
-                    <td><label>${element.problem_statement}</label></td>
-                    <td><label class='badge badge-${status}</label></td>
-                    <td>${element.date}</td>
-                    <td><button onclick='view(${element.query_id})' type='button' class='btn-m btn-gradient-primary btn-fw'>View</button>${action}</td>
-                  </tr>;
-                    `)
-                  });
-                    dtable(); 
-                }
+    url: './../../api/suggestions/getsuggestions.php',
+    method: 'POST',
+    dataType: 'json',
+    cache: false,
+    contentType: false,
+    processData: false,
+    data: form_data,
+    success: function(result) {
+      if (result.success === true) {
+        var check = result.role;
+        console.log(check);
+        var user_hostel = result.hostel;
+        table.destroy();
+        $('#table_body').empty();
+        
+        let data = result.data;
+        
+        data.forEach(element => {
+          var action_button = '';
+          let class_name = (element.user_like_status === 'liked') ? '' : '-outline';
+          if (check == '0')
+          action_button = `<button type='button' class='btn btn-inverse-primary btn-rounded btn-icon' onclick='like(${element.sg_id})'><i id='s${element.sg_id}' class='mdi mdi-thumb-up${class_name}'></i></button>`;
+          if (check == 2)
+          action_button = `<button onclick='mark(${element.sg_id})' type='button' class='btn-m btn-gradient-warning btn-fw' style='box-shadow:none; margin-left:3%'>Mark</button>`
 
-                 
-                  if (result.success === false) {
-                      alert(result.message);
-                  }
-          },
-          error: function (err) {
-              console.log(err);
-          }
-      });
-   
+          console.log(selectedValue);
+          console.log(user_hostel);
+          console.log(element.hostel);
+          if ((element.for_place === '1' )&& user_hostel !== element.hostel) {
+          return;
+        }
+         let upvote = `<button type='button' class='btn btn-inverse-primary btn-rounded btn-icon' onclick='like(${element.sg_id})'><i id='s${element.sg_id}' class='mdi mdi-thumb-up${class_name}'></i></button>`;
+          console.log(element.for_place);
+          let for_place = (element.for_place === '1') ? 'Hostel' :
+              ((element.for_place === '2') ? 'Pathway' :
+              ((element.for_place === '3') ? 'Student Center' :
+              ((element.for_place === '4') ? 'Laundry' :
+              'Mini Canteen')));
+          
+          $('#table_body').append(`
+            <tr>
+              <td>SG-${element.sg_id}</td>
+              <td>${element.rollno}</td>
+              <td>${element.hostel}</td>
+              <td><label>${for_place}</label></td>
+              <td><label>${element.suggestion_title}</label></td>
+              <td>${element.date}</td>
+              <td><button onclick='view(${element.sg_id})' type='button' class='btn-m btn-gradient-primary btn-fw'>View</button>${action_button}</td>
+              <td><span id='lc${element.sg_id}' style='cursor:auto; color:#128fc8;' class='btn btn-icon'>${element.num_likes}</span></td>
+            </tr>;
+          `);
+        });
+        
+        dtable();
+      }
+      
+      if (result.success === false) {
+        alert(result.message);
+      }
+    },
+    error: function(err) {
+      console.log(err);
+    }
+  });
 });
 
 function view(id_no){
@@ -232,6 +288,12 @@ function view(id_no){
         idh= id.toString(8);
         window.location.href = "./view.php?id=" + id;
     }
+
+  function mark(id_no){
+      let id = id_no;
+      var encode = btoa(id);
+      window.location.href = "./mark.php?id=" + encode;
+  }
 
     function approve(qid){
             var id = qid;

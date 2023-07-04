@@ -9,14 +9,14 @@ if ($db) {
     try {
         extract($_POST);
         if ($_SESSION['role'] == 0)
-        $sql = "SELECT q.query_id, q.date, s.rollno, q.hostel, q.room_no, q.problem_category, q.problem_statement, q.resolved_by, q.status 
+        $sql = "SELECT q.query_id, q.date, s.rollno, q.hostel, q.room_no, q.problem_category, q.problem_statement, q.status 
         FROM room_query q 
         LEFT JOIN students_info s ON q.reported_by = s.id 
         WHERE q.room_no = '$_SESSION[room_no]' AND q.hostel = '$_SESSION[hostel]' " . (($status == 9) ? "" : "AND q.status = '$status'") . " 
         ORDER BY q.query_id DESC;";
         
         if ($_SESSION['role'] == 2)
-        $sql = "SELECT q.query_id, q.date, s.rollno, q.hostel, q.room_no, q.problem_category, q.problem_statement, q.resolved_by, q.status 
+        $sql = "SELECT q.query_id, q.date, s.rollno, q.hostel, q.room_no, q.problem_category, q.problem_statement, q.status 
         FROM room_query q 
         LEFT JOIN students_info s ON q.reported_by = s.id 
         WHERE q.hostel = '$_SESSION[hostel]' " . (($status == 9) ? "" : "AND q.status = '$status'") . " 

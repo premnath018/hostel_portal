@@ -17,6 +17,16 @@
     <link rel="stylesheet" href="./../../assets/css/style.css">
     <!-- End layout styles -->
     <link rel="shortcut icon" href="./../../assets/images/favicon.ico" />
+    
+    <!-- container-scroller -->
+    <!-- plugins:js -->
+    <script src="./../../assets/vendors/js/vendor.bundle.base.js"></script>
+    <!-- endinject -->
+    <!-- inject:js -->
+    <script src="./../../assets/js/off-canvas.js"></script>
+    <script src="./../../assets/js/hoverable-collapse.js"></script>
+    <script src="./../../assets/js/misc.js"></script>
+    <!-- endinject -->
   </head>
   <?php
     include './../../includes/main.php';
@@ -47,7 +57,7 @@
             </div>
             <?php 
                 $id = $_GET['id'];
-                $Istmt = "SELECT q.query_id,q.date,s.rollno,s.name,q.hostel,q.room_no,q.problem_category,q.problem_statement,q.resolved_by,q.query_photo_link,q.status FROM room_query q left join students_info s ON q.reported_by=s.id WHERE q.query_id = ? ;";
+                $Istmt = "SELECT q.query_id,q.date,s.rollno,s.name,q.hostel,q.room_no,q.problem_category,q.problem_statement,q.query_photo_link,q.status FROM room_query q left join students_info s ON q.reported_by=s.id WHERE q.query_id = ? ;";
                 $stmt = mysqli_prepare($db, $Istmt); mysqli_stmt_bind_param($stmt, "d",$id); mysqli_stmt_execute($stmt); $result = mysqli_stmt_get_result($stmt);
                 $row = mysqli_fetch_array($result);
                 $category = ($row['problem_category'] == 1) ? 'Electrical' : ((($row['problem_category'] == 2) ? 'Woodworks' : 'Others'));
@@ -89,8 +99,29 @@
                      if($_SESSION['role']=='0'){
                       if ($row['status']=='1')
                       echo "<button onclick='DeleteQuery($row[query_id])' type='button' style='box-shadow:none;' class='btn btn-gradient-danger btn-fw'>Delete Query</button>";
-                      if ($row['status']=='3')
-                      echo "<button onclick='close($row[query_id])' type='button' style='box-shadow:none;' class='btn btn-gradient-success btn-fw'>Close Query</button>";
+                      if ($row['status']=='3'){ echo"  
+                        
+                        <div class='form-group row'>
+                            <div class='col-sm-4'>
+                              <div class='form-check'>
+                                <label class='form-check-label'>
+                                  <input type='radio' class='form-check-input' name='RatingRadios' id='membershipRadios1' value='1'> Satisfied With The Work <i class='input-helper'></i></label>
+                              </div>
+                            </div>
+                            <div class='col-sm-5'>
+                              <div class='form-check'>
+                                <label class='form-check-label'>
+                                  <input type='radio' class='form-check-input' name='RatingRadios' id='membershipRadios2' value='0'> Not Satisfied <i class='input-helper'></i></label>
+                              </div>
+                            </div>
+                          </div>
+                        
+                        <div class='form-group'>
+                        <label>Remarks:   </label>
+                        <textarea id='remarks' class='form-control' id='ProblemStatment' rows='4' required></textarea>
+                      </div>";
+                        echo "<button onclick='CloseQuery($row[query_id])' type='button' style='box-shadow:none;' class='btn btn-gradient-success btn-fw'>Close Query</button>";
+                      }
                     }
                     else if(($row['status']==1))
                     echo "<button onclick='approve($row[query_id])' type='button' style='box-shadow:none;' class='btn btn-gradient-success btn-fw'>Approve Query</button>
@@ -115,24 +146,7 @@
       </div>
       <!-- page-body-wrapper ends -->
     </div>
-    <!-- container-scroller -->
-    <!-- plugins:js -->
-    <script src="./../../assets/vendors/js/vendor.bundle.base.js"></script>
-    <!-- endinject -->
-    <!-- Plugin js for this page -->
-    <script src="./../../assets/vendors/chart.js/Chart.min.js"></script>
-    <script src="./../../assets/js/jquery.cookie.js" type="text/javascript"></script>
-    <!-- End plugin js for this page -->
-    <!-- inject:js -->
-    <script src="./../../assets/js/off-canvas.js"></script>
-    <script src="./../../assets/js/hoverable-collapse.js"></script>
-    <script src="./../../assets/js/misc.js"></script>
-    <!-- endinject -->
-    <!-- Custom js for this page -->
-    <script src="./../../assets/js/dashboard.js"></script>
-    <script src="./../../assets/js/todolist.js"></script>
-    <!-- End custom js for this page -->
-  </body>
+   </body>
 </html>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
 <script>
@@ -220,10 +234,14 @@
         }
 
 
-        function close(qid){
+        function CloseQuery(qid){
+            var remarks = $('#remarks').val().trim();
+            var ratingValue = $('input[name=RatingRadios]:checked').val();
             var id = qid;
             var form_data = new FormData();
             form_data.append('q_id',id);
+            form_data.append('remarks',remarks);
+            form_data.append('rating',ratingValue);
             $.ajax({
                 url : './../../api/roomquery/close.php',
                 method : 'POST',
