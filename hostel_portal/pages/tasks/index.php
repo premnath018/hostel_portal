@@ -26,7 +26,8 @@
     <link rel="shortcut icon" href="./../../assets/images/favicon.ico" />
     <script src="./../../assets/vendors/js/vendor.bundle.base.js"></script> 
     <?php tb_script() ?>
-  </head>
+</head>
+<body>
   <body>
     <div class="container-scroller">
       <!-- partial:partials/_navbar.html -->
@@ -53,52 +54,15 @@
             }
             $var_id = "Query Id";
             $var_room_for = "Room No";
-            $var_prb_title = "Problem Statement";                         
+            $var_prb_title = "Problem Statement";
             if (isset($_GET['category'])){
               $category=$_GET['category']; 
                 if ($category == "suggestion-tasks"){
                   $var_id = "Sg Id";
                   $var_room_for = "For";
-                  $var_prb_title = "Title";  
-
-                  $Istmt = "SELECT q.sg_id, s.rollno, q.hostel, q.for_place, q.problem_category, q.suggestion_title, q.date, q.status, q.task_status 
-                        FROM suggestions_tasks q 
-                        RIGHT JOIN students_info s ON q.reported_by = s.id 
-                        WHERE q.task_status IN ".$Mstmt."   
-                        AND q.problem_category = " . $_SESSION['category'] . " 
-                        ORDER BY q.sg_id ASC;";
-                        if ($_SESSION['role']=='3'){
-                          $Istmt = "SELECT q.sg_id, q.date, s.rollno, q.hostel, q.for_place, q.problem_category, q.task_title, q.status, q.task_status FROM room_query q LEFT JOIN students_info s ON q.reported_by = s.id WHERE q.status = '1' AND q.task_status IS NULL ORDER BY q.sg_id DESC;";}
-                          $stmt = mysqli_prepare($db, $Istmt); 
-                          mysqli_stmt_execute($stmt); 
-                          $result = mysqli_stmt_get_result($stmt);                       
-                          while ($row = mysqli_fetch_array($result)) {     
-                          $for_place = ($row['for_place'] == 1) ? 'Hostel' : (($row['for_place'] == 2) ? 'Pathway' : (($row['for_place'] == 3) ? 'Student Center' : (($row['for_place'] == 4) ? 'Laundry' : 'Mini Canteen')));                     
-                          $action = $row['task_status'] == null ? "<button onclick='generate({$row['sg_id']})' type='button' class='btn-m btn-gradient-success btn-fw' style='box-shadow:none; margin-left:3%'>Generate Task Id</button>" :
-                          ($row['task_status'] == 0 ? "<button onclick='initiate({$row['sg_id']})' type='button' class='btn-m btn-gradient-info btn-fw' style='box-shadow:none; margin-left:3%'><strong>Initiate Task</strong></button>" :
-                          ($row['task_status'] == 1 ? "<button onclick='complete({$row['sg_id']})' type='button' class='btn-m btn-gradient-warning btn-fw' style='box-shadow:none; margin-left:3%'><strong>Complete Task</strong></button>" :
-                          "<button type='button' class='btn-m btn-gradient-success btn-fw' style='box-shadow:none; margin-left:3%'><strong>Completed</strong></button>"));
-                          if($_SESSION['role']!=0){
-                            $category = ($row['problem_category'] == 1) ? 'Electrical' :  (($row['problem_category'] == 2) ? 'Plumbing' : (
-                              (($row['problem_category'] == 3) ? 'Carpentry' : (
-                              (($row['problem_category'] == 4) ? 'Cleaning' : (
-                              (($row['problem_category'] == 5) ? 'Civil Work' : (
-                              (($row['problem_category'] == 6) ? 'Others' : 'Unknown'))))))))); 
-                            echo "<tr>";
-                            echo "<td>RQ-$row[sg_id]</td>
-                            <td>$row[rollno]</td>
-                            <td>$row[hostel]</td>
-                            <td>$row[for_place]</td>
-                            <td><label>$category</label></td>
-                            <td><label>$row[task_title]</label></td>
-                            <td>$row[date]</td>
-                            <td>$action</td>
-                          </tr>";
-                        }
-                      }
-                        
+                  $var_prb_title = "Title"; 
               }
-            }
+            }   
             ?>
             <div class="card">
                   <div class="card-body">
@@ -138,9 +102,49 @@
                       </thead>
                       <tbody>
                         <?php
+                        if (isset($_GET['category'])){
+                          $category=$_GET['category']; 
+                            if ($category == "suggestion-tasks"){
+                            $Istmt = "SELECT q.sg_id, q.reported_by, q.hostel, q.for_place, q.category, q.task_title, q.task_descrip, q.date, q.status, q.task_status 
+                            FROM suggestions_tasks q 
+                            RIGHT JOIN students_info s ON q.reported_by = s.id 
+                            WHERE q.task_status IN ".$Mstmt."   
+                            AND q.category = " . $_SESSION['category'] . " 
+                            ORDER BY q.sg_id ASC;";
+                            if ($_SESSION['role']=='3'){
+                              $Istmt = "SELECT q.sg_id, q.reported_by, q.hostel, q.for_place, q.category, q.task_title, q.task_descrip, q.date, q.status, q.task_status FROM suggestions_tasks q LEFT JOIN students_info s ON q.reported_by = s.id WHERE q.status = '0' AND q.task_status IS NULL ORDER BY q.sg_id DESC;";}
+                              $stmt = mysqli_prepare($db, $Istmt); 
+                              mysqli_stmt_execute($stmt); 
+                              $result = mysqli_stmt_get_result($stmt);                       
+                              while ($row = mysqli_fetch_array($result)) {     
+                              $for_place = ($row['for_place'] == 1) ? 'Hostel' : (($row['for_place'] == 2) ? 'Pathway' : (($row['for_place'] == 3) ? 'Student Center' : (($row['for_place'] == 4) ? 'Laundry' : 'Mini Canteen')));                     
+                              $action = $row['task_status'] == null ? "<button onclick='suggestion_generate({$row['sg_id']})' type='button' class='btn-m btn-gradient-success btn-fw' style='box-shadow:none; margin-left:3%'>Generate Task Id</button>" :
+                              ($row['task_status'] == 0 ? "<button onclick='suggestion_initiate({$row['sg_id']})' type='button' class='btn-m btn-gradient-info btn-fw' style='box-shadow:none; margin-left:3%'><strong>Initiate Task</strong></button>" :
+                              ($row['task_status'] == 1 ? "<button onclick='suggestion_complete({$row['sg_id']})' type='button' class='btn-m btn-gradient-warning btn-fw' style='box-shadow:none; margin-left:3%'><strong>Complete Task</strong></button>" :
+                              "<button type='button' class='btn-m btn-gradient-success btn-fw' style='box-shadow:none; margin-left:3%'><strong>Completed</strong></button>"));
+                              if($_SESSION['role']!=0){
+                              $category = ($row['category'] == 1) ? 'Electrical' :  (($row['category'] == 2) ? 'Plumbing' : (
+                                  (($row['category'] == 3) ? 'Carpentry' : (
+                                  (($row['category'] == 4) ? 'Cleaning' : (
+                                  (($row['category'] == 5) ? 'Civil Work' : (
+                                  (($row['category'] == 6) ? 'Others' : 'Unknown'))))))))); 
+                                echo "<tr>";
+                                echo "<td>SG-$row[sg_id]</td>
+                                <td>$row[reported_by]</td>
+                                <td>$row[hostel]</td>
+                                <td>$row[for_place]</td>
+                                <td><label>$category</label></td>
+                                <td><label>$row[task_title]</label></td>
+                                <td>$row[date]</td>
+                                <td>$action</td>
+                              </tr>";
+                            }
+                          }
+                        }
+                      else{
                         $Istmt = "SELECT q.query_id, q.date, s.rollno, q.hostel, q.room_no, q.problem_category, q.problem_statement, q.status, q.task_status 
                         FROM room_query q 
-                        RIGHT JOIN students_info s ON q.reported_by = s.id 
+                        LEFT JOIN students_info s ON q.reported_by = s.id 
                         WHERE q.task_status IN ".$Mstmt."   
                         AND q.problem_category = " . $_SESSION['category'] . " 
                         ORDER BY q.query_id ASC;";
@@ -172,7 +176,45 @@
                           </tr>";
                         }
                       }
-                        ?>
+                    }
+                  }
+                  else{
+                    $Istmt = "SELECT q.query_id, q.date, s.rollno, q.hostel, q.room_no, q.problem_category, q.problem_statement, q.status, q.task_status 
+                        FROM room_query q 
+                        LEFT JOIN students_info s ON q.reported_by = s.id 
+                        WHERE q.task_status IN ".$Mstmt."   
+                        AND q.problem_category = " . $_SESSION['category'] . " 
+                        ORDER BY q.query_id ASC;";
+                        if ($_SESSION['role']=='3'){
+                          $Istmt = "SELECT q.query_id, q.date, s.rollno, q.hostel, q.room_no, q.problem_category, q.problem_statement, q.status, q.task_status FROM room_query q LEFT JOIN students_info s ON q.reported_by = s.id WHERE q.status = '1' AND q.task_status IS NULL ORDER BY q.query_id DESC;";}
+                          $stmt = mysqli_prepare($db, $Istmt); 
+                          mysqli_stmt_execute($stmt); 
+                          $result = mysqli_stmt_get_result($stmt);                       
+                          while ($row = mysqli_fetch_array($result)) {                          
+                          $action = $row['task_status'] == null ? "<button onclick='generate({$row['query_id']})' type='button' class='btn-m btn-gradient-success btn-fw' style='box-shadow:none; margin-left:3%'>Generate Task Id</button>" :
+                          ($row['task_status'] == 0 ? "<button onclick='initiate({$row['query_id']})' type='button' class='btn-m btn-gradient-info btn-fw' style='box-shadow:none; margin-left:3%'><strong>Initiate Task</strong></button>" :
+                          ($row['task_status'] == 1 ? "<button onclick='complete({$row['query_id']})' type='button' class='btn-m btn-gradient-warning btn-fw' style='box-shadow:none; margin-left:3%'><strong>Complete Task</strong></button>" :
+                          "<button type='button' class='btn-m btn-gradient-success btn-fw' style='box-shadow:none; margin-left:3%'><strong>Completed</strong></button>"));
+                          if($_SESSION['role']!=0){
+                            $category = ($row['problem_category'] == 1) ? 'Electrical' :  (($row['problem_category'] == 2) ? 'Plumbing' : (
+                              (($row['problem_category'] == 3) ? 'Carpentry' : (
+                              (($row['problem_category'] == 4) ? 'Cleaning' : (
+                              (($row['problem_category'] == 5) ? 'Civil Work' : (
+                              (($row['problem_category'] == 6) ? 'Others' : 'Unknown'))))))))); 
+                            echo "<tr>";
+                            echo "<td>RQ-$row[query_id]</td>
+                            <td>$row[rollno]</td>
+                            <td>$row[hostel]</td>
+                            <td>$row[room_no]</td>
+                            <td><label>$category</label></td>
+                            <td><label>$row[problem_statement]</label></td>
+                            <td>$row[date]</td>
+                            <td>$action</td>
+                          </tr>";
+                  }
+                }
+              }
+                       ?>
                       </tbody>
                     </table>
                     </div>
@@ -240,7 +282,84 @@ function view(id_no){
         idh= id.toString(8);
         window.location.href = "./view.php?id=" + id;
     }
-
+      function suggestion_generate(qid){
+      var id = qid;
+      var form_data = new FormData();
+      form_data.append('q_id',id);
+      $.ajax({
+          url : './../../api/tasks/suggestion_generate.php',
+          method : 'POST',
+          dataType : 'json',
+          cache : false,
+          contentType : false,
+          processData: false,
+          data : form_data,
+          success: function (result) {
+              console.log(result);
+              console.log(result.success);
+              if (result.success === true) {
+                  location.reload();
+              } else if (result.success === false) {
+                  alert(result.message);
+              }
+          },
+          error: function (err) {
+              console.log(err);
+          }
+        });
+      }
+      function suggestion_initiate(qid){
+          var id = qid;
+          var form_data = new FormData();
+          form_data.append('q_id',id);
+          $.ajax({
+              url : './../../api/tasks/suggestion_initiate.php',
+              method : 'POST',
+              dataType : 'json',
+              cache : false,
+              contentType : false,
+              processData: false,
+              data : form_data,
+              success: function (result) {
+                  console.log(result);
+                  console.log(result.success);
+                  if (result.success === true) {
+                      location.reload();
+                  } else if (result.success === false) {
+                      alert(result.message);
+                  }
+              },
+              error: function (err) {
+                  console.log(err);
+              }
+          });
+      }
+      function suggestion_complete(qid){
+          var id = qid;
+          var form_data = new FormData();
+          form_data.append('q_id',id);
+          $.ajax({
+              url : './../../api/tasks/suggestion_complete.php',
+              method : 'POST',
+              dataType : 'json',
+              cache : false,
+              contentType : false,
+              processData: false,
+              data : form_data,
+              success: function (result) {
+                  console.log(result);
+                  console.log(result.success);
+                  if (result.success === true) {
+                      location.reload();
+                  } else if (result.success === false) {
+                      alert(result.message);
+                  }
+              },
+              error: function (err) {
+                  console.log(err);
+              }
+          });
+      }
     function generate(qid){
     var id = qid;
     var form_data = new FormData();

@@ -44,7 +44,7 @@
             </div>
             <?php
             $id = base64_decode($_GET['id']);
-            $Istmt = "SELECT q.sg_id,q.date,s.name,s.rollno,q.hostel,q.for_place,q.suggestion_title,q.sg_descrip,q.sg_photo_link FROM suggestions q left join students_info s ON q.reported_by=s.id  WHERE q.sg_id = ?;";
+            $Istmt = "SELECT q.reported_by,q.sg_id,q.date,s.name,s.rollno,q.hostel,q.for_place,q.suggestion_title,q.sg_descrip,q.sg_photo_link FROM suggestions q left join students_info s ON q.reported_by=s.id  WHERE q.sg_id = ?;";
             $stmt = mysqli_prepare($db, $Istmt); mysqli_stmt_bind_param($stmt, "d",$id); mysqli_stmt_execute($stmt); $result = mysqli_stmt_get_result($stmt);
             $row = mysqli_fetch_assoc($result);
             $for_place = ($row['for_place'] == 1) ? 'Hostel' : (($row['for_place'] == 2) ? 'Pathway' : (($row['for_place'] == 3) ? 'Student Center' : (($row['for_place'] == 4) ? 'Laundry' : 'Mini Canteen')));
@@ -154,6 +154,7 @@
 <script> 
         function MarkSuggestions(){
           event.preventDefault();
+          var reported_by=<?php echo $value['reported_by']  ;?>;
           var sg_id=<?php echo $value['sg_id']  ;?>;
           var hostel= '<?php echo $value['hostel']  ;?>';
           var date='<?php echo $value['date']  ;?>';
@@ -170,6 +171,7 @@
             var form_data = new FormData();
 
             // Append variables to the FormData object
+            form_data.append('reported_by', reported_by);
             form_data.append('sg_id', sg_id);
             form_data.append('hostel', hostel);
             form_data.append('date', date);
