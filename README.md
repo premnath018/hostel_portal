@@ -1,5 +1,3 @@
-Sure, here is the updated documentation with more emojis for a more engaging and visually appealing look:
-
 # Hostel Portal
 
 Hostel Portal is a web-based application designed to streamline the management of student complaints and suggestions in a hostel environment. Built using PHP, HTML, CSS, and JavaScript, the portal provides distinct interfaces for students, caretakers, and administrators to ensure efficient resolution of issues and continuous improvement of hostel facilities.
