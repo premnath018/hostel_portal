@@ -110,5 +110,3 @@ Ensure the following configurations are set up correctly in `/api/db/connection.
 ## License
 
 This project is licensed under the MIT License 📜. See the [LICENSE](LICENSE) file for details.
-
-Let me know if there are any other changes you'd like to make!
