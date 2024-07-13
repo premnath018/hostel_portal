@@ -53,7 +53,7 @@ To run Hostel Portal locally, follow these steps:
     ```
 3. Set up your web server (e.g., Apache) to serve the project directory.
 4. Import the provided SQL database file (`database.sql`) into your MySQL database.
-5. Update the database configuration in `config.php` with your database credentials.
+5. Update the database configuration in `/api/db/connection.php` with your database credentials.
 
 ## Usage
 
@@ -69,7 +69,7 @@ To run Hostel Portal locally, follow these steps:
 
 ## Configuration
 
-Ensure the following configurations are set up correctly in `config.php`:
+Ensure the following configurations are set up correctly in `/api/db/connection.php`:
 - Database host
 - Database name
 - Database user
